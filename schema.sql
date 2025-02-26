@@ -15,16 +15,16 @@ CREATE TABLE items (
     -- Items can be archived to support soft-deletion
     is_archived BOOLEAN NOT NULL DEFAULT 0,
     archive_status_changed_at TIMESTAMP,
-    -- Items have automatically updating created_at and modified_at timestamps
+    -- Items have automatically updating created_at and changed_at timestamps
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- The modified_at and archive_status_changed_at fields are automatically updated.
-CREATE TRIGGER update_items_modified_at 
+-- The changed_at and archive_status_changed_at fields are automatically updated.
+CREATE TRIGGER update_items_changed_at 
 AFTER UPDATE ON items
 BEGIN
-    UPDATE items SET modified_at = CURRENT_TIMESTAMP
+    UPDATE items SET changed_at = CURRENT_TIMESTAMP
     WHERE id = NEW.id;
 END;
 
