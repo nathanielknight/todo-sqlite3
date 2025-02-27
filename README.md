@@ -78,22 +78,17 @@ SQLite provides a few advantages over a format like todo.txt.
 
 First, and most obviously, it lets you query your todo list, create views into it, or extend it with associated data which will have [referential integrity](https://en.wikipedia.org/wiki/Referential_integrity).
 
-Another, more subtle advantage is that it allows multiple applications to read from or write to the database simultaneously without corruption. You can have a CLI program, a web server, a cron-job, and a TUI all interacting with the same database and SQLite will keep things straight.
+Another, more subtle advantage is that it allows multiple applications to read from or write to the database simultaneously without corruption. You can have a CLI program, a web server, a cron-job, and a TUI all interacting with the same database and SQLite will keep things straight (though clients may need to wait their turn for write access).
 
 
 # Extensions
 
-Extensions should be provided as their own executable `.sql` file.
+Extensions must not modify the `items` table.
 
 Extensions may:
 
 - Create new tables, triggers, functions, views, etc.
-- Depend on `items` with foreign keys
-
-Extensions must:
-
-- Not modify the `items` table
-- Delete-cascade when rows in `items` are deleted
+- Depend on `items` with foreign keys, but they should `DELETE CASCADE` if rows are deleted (rows will usually be archived with `is_archived` instead of deleted; deletion is more serious and should be respected).
 
 For an example, see the [`tags`](./extensions/tags.sql) extension.
 
