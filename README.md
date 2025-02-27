@@ -35,8 +35,6 @@ The core `items` table (as in [`.schema.sql`](./schema.sql)):
 
 ```sql
 -- todo-sqlite3
--- https://github.com/nathanielknight/todo-sqlite3
-
 -- Foreign Key constraints are required.
 PRAGMA foreign_keys = ON;
 
@@ -50,36 +48,54 @@ CREATE TABLE items (
     body TEXT,
     -- Items can be archived to support soft-deletion
     is_archived BOOLEAN NOT NULL DEFAULT 0,
-    archive_status_changed_at TIMESTAMP,
+    archived_status_changed_at TIMESTAMP,
     -- Items have automatically updating created_at and changed_at timestamps
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT (unixepoch('now', 'subsec')),
+    changed_at TIMESTAMP NOT NULL DEFAULT (unixepoch('now', 'subsec'))
 );
 
--- The changed_at and archive_status_changed_at fields are automatically updated.
+-- The changed_at and archived_status_changed_at fields are automatically updated.
 CREATE TRIGGER update_items_changed_at 
 AFTER UPDATE ON items
 BEGIN
-    UPDATE items SET changed_at = CURRENT_TIMESTAMP
+    UPDATE items SET changed_at = unixepoch('now', 'subsec')
     WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER update_archive_status_timestamp
+CREATE TRIGGER update_archived_status_timestamp
 AFTER UPDATE OF is_archived ON items
 WHEN NEW.is_archived != OLD.is_archived
 BEGIN
     UPDATE items 
-    SET archive_status_changed_at = CURRENT_TIMESTAMP
+    SET archived_status_changed_at = unixepoch('now', 'subsec')
     WHERE id = NEW.id;
 END;
 ```
 
+# Why SQLite?
+
+SQLite provides a few advantages over a format like todo.txt.
+
+First, and most obviously, it lets you query your todo list, create views into it, or extend it with associated data which will have [referential integrity](https://en.wikipedia.org/wiki/Referential_integrity).
+
+Another, more subtle advantage is that it allows multiple applications to read from or write to the database simultaneously without corruption. You can have a CLI program, a web server, a cron-job, and a TUI all interacting with the same database and SQLite will keep things straight.
+
+
 # Extensions
 
-- Can make their own tables, but shouldn't modify `items`
-- Can rely on foreign keys
-- Should delete-cascade when items are deleted
-- Can specify tables, triggers, views, etc. but can't specify application semantics.
+Extensions should be provided as their own executable `.sql` file.
+
+Extensions may:
+
+- Create new tables, triggers, functions, views, etc.
+- Depend on `items` with foreign keys
+
+Extensions must:
+
+- Not modify the `items` table
+- Delete-cascade when rows in `items` are deleted
+
+For an example, see the [`tags`](./extensions/tags.sql) extension.
 
 
 # License

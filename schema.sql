@@ -14,13 +14,13 @@ CREATE TABLE items (
     body TEXT,
     -- Items can be archived to support soft-deletion
     is_archived BOOLEAN NOT NULL DEFAULT 0,
-    archive_status_changed_at TIMESTAMP,
+    archived_status_changed_at TIMESTAMP,
     -- Items have automatically updating created_at and changed_at timestamps
     created_at TIMESTAMP NOT NULL DEFAULT (unixepoch('now', 'subsec')),
     changed_at TIMESTAMP NOT NULL DEFAULT (unixepoch('now', 'subsec'))
 );
 
--- The changed_at and archive_status_changed_at fields are automatically updated.
+-- The changed_at and archived_status_changed_at fields are automatically updated.
 CREATE TRIGGER update_items_changed_at 
 AFTER UPDATE ON items
 BEGIN
@@ -28,11 +28,11 @@ BEGIN
     WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER update_archive_status_timestamp
+CREATE TRIGGER update_archived_status_timestamp
 AFTER UPDATE OF is_archived ON items
 WHEN NEW.is_archived != OLD.is_archived
 BEGIN
     UPDATE items 
-    SET archive_status_changed_at = unixepoch('now', 'subsec')
+    SET archived_status_changed_at = unixepoch('now', 'subsec')
     WHERE id = NEW.id;
 END;

@@ -108,8 +108,8 @@ class TestSchemaProperties(unittest.TestCase):
             timediff = cursor.fetchone()[0]
             self.assertTrue(timediff > 0)
 
-    def test_archive_status_changed_at(self):
-        "archive_status_updated is changed if and only if the is_archived field changes"
+    def test_archived_status_changed_at(self):
+        "archived_status_updated is changed if and only if the is_archived field changes"
         with test_database() as cxn:
             # Insert a record
             cxn.execute(
@@ -117,9 +117,9 @@ class TestSchemaProperties(unittest.TestCase):
                 ("Test Item", "Test Body"),
             )
 
-            # Verify archive_status_changed_at is initially NULL
+            # Verify archived_status_changed_at is initially NULL
             cursor = cxn.execute(
-                "SELECT archive_status_changed_at FROM items WHERE title = ?",
+                "SELECT archived_status_changed_at FROM items WHERE title = ?",
                 ("Test Item",),
             )
             initial_status = cursor.fetchone()[0]
@@ -131,9 +131,9 @@ class TestSchemaProperties(unittest.TestCase):
                 ("Updated Body", "Test Item"),
             )
 
-            # Verify archive_status_changed_at is still NULL
+            # Verify archived_status_changed_at is still NULL
             cursor = cxn.execute(
-                "SELECT archive_status_changed_at FROM items WHERE title = ?",
+                "SELECT archived_status_changed_at FROM items WHERE title = ?",
                 ("Test Item",),
             )
             after_update_status = cursor.fetchone()[0]
@@ -144,14 +144,14 @@ class TestSchemaProperties(unittest.TestCase):
                 "UPDATE items SET is_archived = 1 WHERE title = ?", ("Test Item",)
             )
 
-            # Verify archive_status_changed_at is now set
+            # Verify archived_status_changed_at is now set
             cursor = cxn.execute(
-                "SELECT archive_status_changed_at FROM items WHERE title = ?",
+                "SELECT archived_status_changed_at FROM items WHERE title = ?",
                 ("Test Item",),
             )
-            after_archive_status = cursor.fetchone()[0]
-            self.assertIsNotNone(after_archive_status)
-            self.assertAlmostEqual(after_archive_status, time.time(), delta=0.1)
+            after_archived_status = cursor.fetchone()[0]
+            self.assertIsNotNone(after_archived_status)
+            self.assertAlmostEqual(after_archived_status, time.time(), delta=0.1)
 
             # Another update without changing is_archived shouldn't change the timestamp
             time.sleep(0.2)
@@ -161,11 +161,11 @@ class TestSchemaProperties(unittest.TestCase):
             )
 
             cursor = cxn.execute(
-                "SELECT archive_status_changed_at FROM items WHERE title = ?",
+                "SELECT archived_status_changed_at FROM items WHERE title = ?",
                 ("Renamed Item",),
             )
             after_rename_status = cursor.fetchone()[0]
-            self.assertEqual(after_archive_status, after_rename_status)
+            self.assertEqual(after_archived_status, after_rename_status)
 
             # Changing is_archived again should update the timestamp
             time.sleep(0.2)
@@ -174,12 +174,12 @@ class TestSchemaProperties(unittest.TestCase):
             )
 
             cursor = cxn.execute(
-                "SELECT archive_status_changed_at FROM items WHERE title = ?",
+                "SELECT archived_status_changed_at FROM items WHERE title = ?",
                 ("Renamed Item",),
             )
             final_status = cursor.fetchone()[0]
             self.assertIsNotNone(final_status)
-            self.assertNotEqual(after_archive_status, final_status)
+            self.assertNotEqual(after_archived_status, final_status)
             self.assertAlmostEqual(final_status, time.time(), delta=0.1)
 
     def test_retrieving_by_id(self):
